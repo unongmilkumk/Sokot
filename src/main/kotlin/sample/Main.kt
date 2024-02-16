@@ -12,7 +12,9 @@ fun main() {
     sokot.applyRouter(TopRouter(auth))
     sokot.applyRouter(LoginRouter(auth))
     sokot.applyRouter(SignupRouter(auth))
-    sokot.runServer()
+    sokot.runServer {
+        println("http://localhost:3000")
+    }
 }
 
 class TopRouter(val auth : SokotAuth) : SokotRouter("/") {
@@ -34,25 +36,15 @@ class LoginRouter(val auth : SokotAuth) : SokotRouter("/login") {
     override fun postRequest(exchange: HttpExchange) {
         val formData = exchange.requestBody.bufferedReader().readText()
 
-        if (formData.contains("Login")) {
-            val id = formData.substringAfter("id=").substringBefore("&")
-            val password = formData.substringAfter("password=").substringBefore("&")
-            val sessionToken = auth.authenticateUser(id, password)
-            println(
-                "id : $id\n" +
-                        "password : $password\n" +
-                        "cookie : $sessionToken\n" +
-                        "getIdByCookie : ${auth.getUsernameByToken(sessionToken ?: "no")}"
-            )
-            if (sessionToken != null) {
-                exchange.responseHeaders.add("Set-Cookie", "sessionToken=$sessionToken")
-                changRoute(exchange, "/")
-            } else {
-                sendFileResponse(exchange, "server/login.html")
-            }
+        val id = formData.substringAfter("id=").substringBefore("&")
+        val password = formData.substringAfter("password=").substringBefore("&")
+        val sessionToken = auth.authenticateUser(id, password)
+
+        if (sessionToken != null) {
+            exchange.responseHeaders.add("Set-Cookie", "sessionToken=$sessionToken")
+            changRoute(exchange, "/")
         } else {
-            println("Nothing worked")
-            sendFileResponse(exchange, "server/index.html")
+            sendFileResponse(exchange, "server/login.html")
         }
     }
 }
@@ -65,33 +57,21 @@ class SignupRouter(val auth : SokotAuth) : SokotRouter("/signup") {
     override fun postRequest(exchange: HttpExchange) {
         val formData = exchange.requestBody.bufferedReader().readText()
 
-        if (formData.contains("Signup")) {
-            val id = formData.substringAfter("id=").substringBefore("&")
-            val password = formData.substringAfter("password=").substringBefore("&")
-            if (auth.getUserByUsername(id) != null) changRoute(exchange, "/")
-            else {
-                auth.saveUser(id, password)
-                println("Made new account" +
-                        "id : $id\n" +
-                        "password : $password\n")
+        val id = formData.substringAfter("id=").substringBefore("&")
+        val password = formData.substringAfter("password=").substringBefore("&")
 
-                val sessionToken = auth.authenticateUser(id, password)
-                println(
-                    "id : $id\n" +
-                            "password : $password\n" +
-                            "cookie : $sessionToken\n" +
-                            "getIdByCookie : ${auth.getUsernameByToken(sessionToken ?: "no")}"
-                )
-                if (sessionToken != null) {
-                    exchange.responseHeaders.add("Set-Cookie", "sessionToken=$sessionToken")
-                    changRoute(exchange, "/")
-                } else {
-                    sendFileResponse(exchange, "server/signup.html")
-                }
-            }
-        } else {
-            println("Nothing worked")
+        if (auth.getUserByUsername(id) != null) {
             changRoute(exchange, "/")
+            return
+        }
+
+        auth.saveUser(id, password)
+
+        if (auth.authenticateUser(id, password) != null) {
+            exchange.responseHeaders.add("Set-Cookie", "sessionToken=${auth.authenticateUser(id, password)}")
+            changRoute(exchange, "/")
+        } else {
+            sendFileResponse(exchange, "server/signup.html")
         }
     }
 }

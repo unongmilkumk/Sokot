@@ -6,9 +6,18 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.*
 
+/**
+ * -- Warning --
+ * It is not developed by secure manager, it is not trustable code. Developer is not responsible for anything that happens.
+ *
+ * @author Unongmilk
+ * @since 1.0.0
+ */
 class SokotAuth(val databaseFile : File) {
     constructor(databaseLocation : String) : this(File(databaseLocation))
+
     data class User (val id : Int, val username : String, val hashedPassword : String, val salt : String)
+
     private val users = mutableListOf<User>()
     private var userIdCounter = 1
 
@@ -18,6 +27,14 @@ class SokotAuth(val databaseFile : File) {
         }
     }
 
+    /**
+     * Save the data of user with hashed and salted password
+     * @param username Username of account
+     * @param password unhashed password
+     *
+     * @author Unongmilk
+     * @since 1.0.0
+     */
     fun saveUser(username: String, password: String) {
         val salt = generateSalt()
         val hashedPassword = hashPassword(password, salt)
@@ -26,10 +43,27 @@ class SokotAuth(val databaseFile : File) {
         saveUsersToFile()
     }
 
+    /**
+     * Get User by Username of account
+     * @see User
+     * @param username Username to find user
+     * @return result of finding
+     *
+     * @author Unongmilk
+     * @since 1.0.0
+     */
     fun getUserByUsername(username: String): User? {
         return users.find { it.username == username }
     }
 
+    /**
+     * Get Username by Exchange of session cookie
+     * @param exchange to get cookie
+     * @return username of the exchange
+     *
+     * @author Unongmilk
+     * @since 1.0.0
+     */
     fun getUsernameByExchange(exchange : HttpExchange): String? {
         if (getSessionTokenFromRequest(exchange) == null) return null
         return getUsernameByToken(getSessionTokenFromRequest(exchange)!!)
@@ -72,6 +106,15 @@ class SokotAuth(val databaseFile : File) {
     }
     private val sessionTokens = mutableMapOf<String, String>()
 
+    /**
+     * Auth User with username and password
+     * @param username Username to auth
+     * @param password unhashed password to auth
+     * @return IF SUCESS - Sessiong Token / ELSE - null
+     *
+     * @author Unongmilk
+     * @since 1.0.0
+     */
     fun authenticateUser(username: String, password: String): String? {
         val user = getUserByUsername(username)
         return if (user != null && user.hashedPassword == hashPassword(password, user.salt)) {
@@ -83,6 +126,14 @@ class SokotAuth(val databaseFile : File) {
         }
     }
 
+    /**
+     * Get Username by Session Token
+     * @param sessionToken to get username
+     * @return found username
+     *
+     * @author Unongmilk
+     * @since 1.0.0
+     */
     fun getUsernameByToken(sessionToken: String): String? {
         return sessionTokens[sessionToken]
     }
@@ -91,6 +142,14 @@ class SokotAuth(val databaseFile : File) {
         return UUID.randomUUID().toString()
     }
 
+    /**
+     * Get Session Token with Exchange
+     * @param exchange Exchange to get session
+     * @return session or null
+     *
+     * @author Unongmilk
+     * @since 1.0.0
+     */
     fun getSessionTokenFromRequest(exchange: HttpExchange): String? {
         val headers = exchange.requestHeaders["Cookie"]
         return headers?.flatMap { it.split(";") }
