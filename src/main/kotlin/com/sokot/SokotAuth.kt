@@ -1,11 +1,13 @@
 package com.sokot
 
+import com.sun.net.httpserver.HttpExchange
 import java.io.File
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.*
 
-class Auth(val databaseFile : File) {
+class SokotAuth(val databaseFile : File) {
+    constructor(databaseLocation : String) : this(File(databaseLocation))
     data class User (val id : Int, val username : String, val hashedPassword : String, val salt : String)
     private val users = mutableListOf<User>()
     private var userIdCounter = 1
@@ -26,6 +28,11 @@ class Auth(val databaseFile : File) {
 
     fun getUserByUsername(username: String): User? {
         return users.find { it.username == username }
+    }
+
+    fun getUsernameByExchange(exchange : HttpExchange): String? {
+        if (getSessionTokenFromRequest(exchange) == null) return null
+        return getUsernameByToken(getSessionTokenFromRequest(exchange)!!)
     }
 
     private fun generateSalt(): String {
@@ -82,5 +89,13 @@ class Auth(val databaseFile : File) {
 
     private fun generateSessionToken(): String {
         return UUID.randomUUID().toString()
+    }
+
+    fun getSessionTokenFromRequest(exchange: HttpExchange): String? {
+        val headers = exchange.requestHeaders["Cookie"]
+        return headers?.flatMap { it.split(";") }
+            ?.map { it.trim() }
+            ?.find { it.startsWith("sessionToken=") }
+            ?.substringAfter("sessionToken=")
     }
 }

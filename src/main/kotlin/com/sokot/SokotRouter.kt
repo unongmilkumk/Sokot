@@ -1,12 +1,23 @@
 package com.sokot
 
 import com.sun.net.httpserver.HttpExchange
+import java.io.File
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 
-open class SokotRouter(val router : String) {
+abstract class SokotRouter(val router : String) {
     fun sendResponse(exchange : HttpExchange, html : String) {
+        exchange.sendResponseHeaders(200, html.length.toLong())
+        val os: OutputStream = exchange.responseBody
+        val writer = OutputStreamWriter(os, StandardCharsets.UTF_8)
+        writer.write(html)
+        writer.close()
+        os.close()
+    }
+    fun sendFileResponse(exchange : HttpExchange, location : String) {
+        val html = File(location).readText()
+        println(location)
         exchange.sendResponseHeaders(200, html.length.toLong())
         val os: OutputStream = exchange.responseBody
         val writer = OutputStreamWriter(os, StandardCharsets.UTF_8)
@@ -19,10 +30,6 @@ open class SokotRouter(val router : String) {
         exchange.sendResponseHeaders(302, -1)
         exchange.close()
     }
-    open fun getRequest(exchange : HttpExchange) {
-
-    }
-    open fun postRequest(exchange : HttpExchange) {
-
-    }
+    open fun getRequest(exchange : HttpExchange) {}
+    open fun postRequest(exchange : HttpExchange) {}
 }
