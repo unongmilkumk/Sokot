@@ -38,7 +38,6 @@ abstract class SokotRouter(val router : String) {
      */
     fun sendHtmlResponse(exchange : HttpExchange, location : String) {
         val html = File(location).readText()
-        println(location)
         exchange.sendResponseHeaders(200, html.length.toLong())
         val os: OutputStream = exchange.responseBody
         val writer = OutputStreamWriter(os, StandardCharsets.UTF_8)
