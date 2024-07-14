@@ -21,9 +21,11 @@ class Sokot(port : Int) {
         server.createContext(router.router) { exchange ->
             if (exchange.requestMethod == "POST") {
                 router.postRequest(exchange)
+                router.anyRequest(exchange, exchange.requestMethod)
             }
             if (exchange.requestMethod == "GET") {
                 router.getRequest(exchange)
+                router.anyRequest(exchange, exchange.requestMethod)
             }
         }
     }

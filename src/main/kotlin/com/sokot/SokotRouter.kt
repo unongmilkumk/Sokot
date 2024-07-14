@@ -5,6 +5,9 @@ import java.io.File
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.HashMap
 
 
 abstract class SokotRouter(val router : String) {
@@ -33,7 +36,7 @@ abstract class SokotRouter(val router : String) {
      * @author Unongmilk
      * @since 1.0.0
      */
-    fun sendFileResponse(exchange : HttpExchange, location : String) {
+    fun sendHtmlResponse(exchange : HttpExchange, location : String) {
         val html = File(location).readText()
         println(location)
         exchange.sendResponseHeaders(200, html.length.toLong())
@@ -42,6 +45,34 @@ abstract class SokotRouter(val router : String) {
         writer.write(html)
         writer.close()
         os.close()
+    }
+
+    /**
+     * Send the Static File
+     * @param exchange where to send
+     * @param rootDirectory location of the file what to send
+     *
+     * @author Unongmilk
+     * @since 1.0.1
+     */
+    fun sendStaticFileResponse(exchange: HttpExchange, rootDirectory: String) {
+        val requestedPath = exchange.requestURI.path
+        val filePath = Paths.get(rootDirectory, requestedPath).normalize().toAbsolutePath().toString()
+
+        val file = File(filePath)
+        if (file.exists() && file.isFile) {
+            val contentType = Files.probeContentType(file.toPath())
+            exchange.sendResponseHeaders(200, file.length())
+            exchange.responseHeaders.add("Content-Type", contentType)
+            file.inputStream().use { fis ->
+                exchange.responseBody.use { os ->
+                    fis.copyTo(os)
+                }
+            }
+        } else {
+            exchange.sendResponseHeaders(404, 0)
+            exchange.responseBody.close()
+        }
     }
 
     /**
@@ -96,4 +127,14 @@ abstract class SokotRouter(val router : String) {
      * @since 1.0.0
      */
     open fun postRequest(exchange : HttpExchange) {}
+
+    /**
+     * When get any request, run this code
+     * @param exchange description of request
+     * @param request type of request
+     *
+     * @author Unongmilk
+     * @since 1.0.1
+     */
+    open fun anyRequest(exchange : HttpExchange, request : String) {}
 }

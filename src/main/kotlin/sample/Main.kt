@@ -23,14 +23,14 @@ class TopRouter(val auth : SokotAuth) : SokotRouter("/") {
             sendResponse(exchange, File("server/index.html").readText().replace("<!--Login Message-->",
                 "<p>You are ${auth.getUsernameByExchange(exchange)}"))
         } else {
-            sendFileResponse(exchange, "server/index.html")
+            sendHtmlResponse(exchange, "server/index.html")
         }
     }
 }
 
 class LoginRouter(val auth : SokotAuth) : SokotRouter("/login") {
     override fun getRequest(exchange: HttpExchange) {
-        sendFileResponse(exchange, "server/login.html")
+        sendHtmlResponse(exchange, "server/login.html")
     }
 
     override fun postRequest(exchange: HttpExchange) {
@@ -44,14 +44,14 @@ class LoginRouter(val auth : SokotAuth) : SokotRouter("/login") {
             exchange.responseHeaders.add("Set-Cookie", "sessionToken=$sessionToken")
             changRoute(exchange, "/")
         } else {
-            sendFileResponse(exchange, "server/login.html")
+            sendHtmlResponse(exchange, "server/login.html")
         }
     }
 }
 
 class SignupRouter(val auth : SokotAuth) : SokotRouter("/signup") {
     override fun getRequest(exchange: HttpExchange) {
-        sendFileResponse(exchange, "server/signup.html")
+        sendHtmlResponse(exchange, "server/signup.html")
     }
 
     override fun postRequest(exchange: HttpExchange) {
@@ -71,7 +71,7 @@ class SignupRouter(val auth : SokotAuth) : SokotRouter("/signup") {
             exchange.responseHeaders.add("Set-Cookie", "sessionToken=${auth.authenticateUser(id, password)}")
             changRoute(exchange, "/")
         } else {
-            sendFileResponse(exchange, "server/signup.html")
+            sendHtmlResponse(exchange, "server/signup.html")
         }
     }
 }
