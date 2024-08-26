@@ -1,4 +1,4 @@
-package com.sokot
+package com.sokot.web
 
 import com.sun.net.httpserver.HttpExchange
 import java.io.File
@@ -13,7 +13,7 @@ import java.util.*
  * @author Unongmilk
  * @since 1.0.0
  */
-class SokotAuth(val databaseFile : File) {
+class WebSokotAuth(val databaseFile : File) {
     constructor(databaseLocation : String) : this(File(databaseLocation))
 
     data class User (val id : Int, val username : String, val hashedPassword : String, val salt : String)

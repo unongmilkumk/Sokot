@@ -1,4 +1,4 @@
-package com.sokot
+package com.sokot.web
 
 import com.sun.net.httpserver.HttpExchange
 import java.io.File
@@ -10,7 +10,7 @@ import java.nio.file.Paths
 import java.util.HashMap
 
 
-abstract class SokotRouter(val router : String) {
+abstract class WebSokotRouter(val router : String) {
     /**
      * Send the HTML String
      * @param exchange where to send

@@ -1,14 +1,14 @@
-package sample
+package sample.web
 
-import com.sokot.Sokot
-import com.sokot.SokotAuth
-import com.sokot.SokotRouter
+import com.sokot.web.WebSokot
+import com.sokot.web.WebSokotAuth
+import com.sokot.web.WebSokotRouter
 import com.sun.net.httpserver.HttpExchange
 import java.io.File
 
 fun main() {
-    val sokot = Sokot(3000)
-    val auth = SokotAuth("db/user_information.json")
+    val sokot = WebSokot(3000)
+    val auth = WebSokotAuth("db/user_information.json")
     sokot.applyRouter(TopRouter(auth))
     sokot.applyRouter(LoginRouter(auth))
     sokot.applyRouter(SignupRouter(auth))
@@ -17,7 +17,7 @@ fun main() {
     }
 }
 
-class TopRouter(val auth : SokotAuth) : SokotRouter("/") {
+class TopRouter(val auth : WebSokotAuth) : WebSokotRouter("/") {
     override fun getRequest(exchange: HttpExchange) {
         if (auth.getSessionTokenFromRequest(exchange) != null && auth.getUsernameByExchange(exchange) != null) {
             sendResponse(exchange, File("server/index.html").readText().replace("<!--Login Message-->",
@@ -28,7 +28,7 @@ class TopRouter(val auth : SokotAuth) : SokotRouter("/") {
     }
 }
 
-class LoginRouter(val auth : SokotAuth) : SokotRouter("/login") {
+class LoginRouter(val auth : WebSokotAuth) : WebSokotRouter("/login") {
     override fun getRequest(exchange: HttpExchange) {
         sendHtmlResponse(exchange, "server/login.html")
     }
@@ -49,7 +49,7 @@ class LoginRouter(val auth : SokotAuth) : SokotRouter("/login") {
     }
 }
 
-class SignupRouter(val auth : SokotAuth) : SokotRouter("/signup") {
+class SignupRouter(val auth : WebSokotAuth) : WebSokotRouter("/signup") {
     override fun getRequest(exchange: HttpExchange) {
         sendHtmlResponse(exchange, "server/signup.html")
     }

@@ -1,9 +1,9 @@
-package com.sokot
+package com.sokot.web
 
 import com.sun.net.httpserver.HttpServer
 import java.net.InetSocketAddress
 
-class Sokot(port : Int) {
+class WebSokot(port : Int) {
     private val server = HttpServer.create(InetSocketAddress(port), 0)!!
     init {
         server.executor = null
@@ -11,13 +11,13 @@ class Sokot(port : Int) {
 
     /**
      * Apply Router of the server
-     * @param router Sokot Router to apply
-     * @see SokotRouter
+     * @param router WebSokot Router to apply
+     * @see WebSokotRouter
      *
      * @author Unongmilk
      * @since 1.0.0
      */
-    fun applyRouter(router : SokotRouter) {
+    fun applyRouter(router : WebSokotRouter) {
         server.createContext(router.router) { exchange ->
             if (exchange.requestMethod == "POST") {
                 router.postRequest(exchange)
